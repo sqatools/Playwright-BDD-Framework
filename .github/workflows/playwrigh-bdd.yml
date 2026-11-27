@@ -1,0 +1,30 @@
+name: BDD tests
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  bdd:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      BASE_URL: ${{ vars.BASE_URL }}
+      SHOP_USER: ${{ secrets.SHOP_USER }}
+      SHOP_PASSWORD: ${{ secrets.SHOP_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: bdd-reports
+          path: |
+            playwright-report/
+            cucumber-report/
+          retention-days: 14
